@@ -26,6 +26,15 @@ app.use('/api/leaves', require('./routes/leaves'));
 
 app.get('/', (req, res) => res.json({ message: 'FWC HRMS API running', version: '1.0.0' }));
 
+// Serve React build in production
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.join(__dirname, '../frontend/build')));
+  // Fixed: use (req, res) instead of wildcard * for newer Express/Node versions
+  app.use((req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/build', 'index.html'));
+  });
+}
+
 const PORT = process.env.PORT || 5000;
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/fwc_hrms';
 
@@ -41,12 +50,3 @@ mongoose.connect(MONGO_URI)
   });
 
 module.exports = app;
-
-// Serve React build in production
-if (process.env.NODE_ENV === 'production') {
-  const path = require('path');
-  app.use(express.static(path.join(__dirname, '../frontend/build')));
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../frontend/build', 'index.html'));
-  });
-}
