@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import {
   LayoutDashboard, Users, Clock, DollarSign, TrendingUp,
   Calendar, Briefcase, Brain, MessageSquare, CalendarClock,
-  LogOut, User, ChevronRight
+  LogOut, User, ChevronRight, Video, X
 } from 'lucide-react';
 
 const navConfig = {
@@ -20,6 +20,7 @@ const navConfig = {
     { section: 'Recruitment', items: [
       { label: 'Job Postings', icon: Briefcase, path: '/recruitment' },
       { label: 'Resume Screener', icon: Brain, path: '/ai/resume-screener' },
+      { label: 'Video Interview', icon: Video, path: '/ai/video-interview' },
       { label: 'Interview Scheduler', icon: CalendarClock, path: '/ai/scheduler' },
     ]},
     { section: 'AI Tools', items: [
@@ -49,6 +50,7 @@ const navConfig = {
     { section: 'Recruitment', items: [
       { label: 'Job Postings', icon: Briefcase, path: '/recruitment' },
       { label: 'Resume Screener', icon: Brain, path: '/ai/resume-screener' },
+      { label: 'Video Interview', icon: Video, path: '/ai/video-interview' },
       { label: 'Interview Scheduler', icon: CalendarClock, path: '/ai/scheduler' },
     ]},
     { section: 'AI Tools', items: [
@@ -69,7 +71,7 @@ const navConfig = {
   ],
 };
 
-export default function Sidebar() {
+export default function Sidebar({ isOpen, onClose }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -80,48 +82,70 @@ export default function Sidebar() {
     hr_recruiter: 'HR Recruiter', employee: 'Employee'
   };
 
+  const handleNav = (path) => {
+    navigate(path);
+    if (onClose) onClose();
+  };
+
   return (
-    <aside className="sidebar">
-      <div className="sidebar-logo">
-        <div className="logo-icon">FW</div>
-        <div>
-          <span>FWC HRMS</span>
-          <small>IT Services Pvt Ltd</small>
+    <>
+      {/* Mobile overlay */}
+      {isOpen && (
+        <div onClick={onClose} style={{
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
+          zIndex: 99, display: 'none'
+        }} className="sidebar-overlay" />
+      )}
+
+      <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
+        <div className="sidebar-logo">
+          <div className="logo-icon">FW</div>
+          <div>
+            <span>FWC HRMS</span>
+            <small>IT Services Pvt Ltd</small>
+          </div>
+          {/* Mobile close button */}
+          <button onClick={onClose} className="sidebar-close-btn" style={{
+            marginLeft: 'auto', background: 'none', border: 'none',
+            color: 'rgba(255,255,255,0.5)', cursor: 'pointer', display: 'none'
+          }}>
+            <X size={20} />
+          </button>
         </div>
-      </div>
 
-      <div style={{ flex: 1 }}>
-        {nav.map(section => (
-          <div className="sidebar-section" key={section.section}>
-            <div className="sidebar-label">{section.section}</div>
-            {section.items.map(item => (
-              <button
-                key={item.path}
-                className={`sidebar-item ${location.pathname === item.path ? 'active' : ''}`}
-                onClick={() => navigate(item.path)}
-              >
-                <item.icon className="icon" />
-                <span style={{ flex: 1 }}>{item.label}</span>
-                {location.pathname === item.path && <ChevronRight size={14} />}
-              </button>
-            ))}
-          </div>
-        ))}
-      </div>
+        <div style={{ flex: 1, overflowY: 'auto' }}>
+          {nav.map(section => (
+            <div className="sidebar-section" key={section.section}>
+              <div className="sidebar-label">{section.section}</div>
+              {section.items.map(item => (
+                <button
+                  key={item.path}
+                  className={`sidebar-item ${location.pathname === item.path ? 'active' : ''}`}
+                  onClick={() => handleNav(item.path)}
+                >
+                  <item.icon className="icon" />
+                  <span style={{ flex: 1 }}>{item.label}</span>
+                  {location.pathname === item.path && <ChevronRight size={14} />}
+                </button>
+              ))}
+            </div>
+          ))}
+        </div>
 
-      <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', padding: '12px 0' }}>
-        <button className="sidebar-item" onClick={() => navigate('/profile')}>
-          <User className="icon" />
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ color: 'white', fontSize: 13, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.name}</div>
-            <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11 }}>{roleLabels[user?.role]}</div>
-          </div>
-        </button>
-        <button className="sidebar-item" onClick={logout} style={{ color: '#ef4444' }}>
-          <LogOut className="icon" />
-          Sign Out
-        </button>
-      </div>
-    </aside>
+        <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', padding: '12px 0' }}>
+          <button className="sidebar-item" onClick={() => handleNav('/profile')}>
+            <User className="icon" />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ color: 'white', fontSize: 13, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.name}</div>
+              <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11 }}>{roleLabels[user?.role]}</div>
+            </div>
+          </button>
+          <button className="sidebar-item" onClick={logout} style={{ color: '#ef4444' }}>
+            <LogOut className="icon" />
+            Sign Out
+          </button>
+        </div>
+      </aside>
+    </>
   );
 }

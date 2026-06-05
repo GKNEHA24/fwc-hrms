@@ -13,11 +13,17 @@ import Recruitment from './pages/hr/Recruitment';
 import AIResumeScreener from './pages/hr/AIResumeScreener';
 import AIChatbot from './pages/shared/AIChatbot';
 import AIScheduler from './pages/hr/AIScheduler';
+import VideoInterview from './pages/hr/VideoInterview';
 import Profile from './pages/shared/Profile';
 
 const PrivateRoute = ({ children, roles }) => {
   const { user, loading } = useAuth();
-  if (loading) return <div className="loading-overlay"><div className="spinner spinner-dark"/><span>Loading...</span></div>;
+  if (loading) return (
+    <div className="loading-overlay">
+      <div className="spinner spinner-dark" />
+      <span>Loading...</span>
+    </div>
+  );
   if (!user) return <Navigate to="/login" />;
   if (roles && !roles.includes(user.role)) return <Navigate to="/dashboard" />;
   return <Layout>{children}</Layout>;
@@ -40,6 +46,7 @@ function App() {
           <Route path="/ai/resume-screener" element={<PrivateRoute roles={['admin','hr_recruiter']}><AIResumeScreener /></PrivateRoute>} />
           <Route path="/ai/chatbot" element={<PrivateRoute><AIChatbot /></PrivateRoute>} />
           <Route path="/ai/scheduler" element={<PrivateRoute roles={['admin','hr_recruiter']}><AIScheduler /></PrivateRoute>} />
+          <Route path="/ai/video-interview" element={<PrivateRoute roles={['admin','hr_recruiter']}><VideoInterview /></PrivateRoute>} />
           <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
           <Route path="*" element={<Navigate to="/dashboard" />} />
         </Routes>
