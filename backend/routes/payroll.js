@@ -9,7 +9,7 @@ const { auth, authorize } = require('../middleware/auth');
 router.post('/generate', auth, authorize('admin', 'hr_recruiter'), async (req, res) => {
   try {
     const { month, year } = req.body;
-    const employees = await User.find({ isActive: true, role: { $in: ['employee', 'hr_recruiter', 'senior_manager'] } });
+    const employees = await User.find({ isActive: true, role: { $in: ['employee', 'hr_recruiter', 'senior_manager', 'admin'] } });
     const results = [];
 
     for (const emp of employees) {

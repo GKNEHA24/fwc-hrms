@@ -14,7 +14,7 @@ const INTERVIEW_QUESTIONS = [
 ];
 
 export default function VideoInterview() {
-  const [step, setStep] = useState('setup'); // setup | interview | results
+  const [step, setStep] = useState('setup');
   const [candidateName, setCandidateName] = useState('');
   const [jobRole, setJobRole] = useState('AI/ML Fullstack Engineer');
   const [currentQ, setCurrentQ] = useState(0);
@@ -27,6 +27,7 @@ export default function VideoInterview() {
   const [cameraOn, setCameraOn] = useState(false);
   const [timer, setTimer] = useState(0);
   const [timerActive, setTimerActive] = useState(false);
+  const [cameraError, setCameraError] = useState('');
   const videoRef = useRef(null);
   const streamRef = useRef(null);
   const recognitionRef = useRef(null);
@@ -48,19 +49,35 @@ export default function VideoInterview() {
     };
   }, []);
 
+  // Attach stream to video element whenever cameraOn changes
+  useEffect(() => {
+    if (cameraOn && streamRef.current && videoRef.current) {
+      videoRef.current.srcObject = streamRef.current;
+    }
+  }, [cameraOn, step]);
+
   const startCamera = async () => {
+    setCameraError('');
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
       streamRef.current = stream;
-      if (videoRef.current) videoRef.current.srcObject = stream;
       setCameraOn(true);
-    } catch {
-      alert('Camera access denied. You can still do a text-based interview.');
+      // Attach to video after state updates and ref is available
+      setTimeout(() => {
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          videoRef.current.play().catch(() => {});
+        }
+      }, 100);
+    } catch (err) {
+      setCameraError('Camera access denied or not available. You can still do a text-based interview.');
     }
   };
 
   const stopCamera = () => {
     if (streamRef.current) streamRef.current.getTracks().forEach(t => t.stop());
+    streamRef.current = null;
+    if (videoRef.current) videoRef.current.srcObject = null;
     setCameraOn(false);
   };
 
@@ -121,7 +138,6 @@ export default function VideoInterview() {
       });
       setResults(data.analysis);
     } catch {
-      // Fallback analysis
       setResults({
         overallScore: 72,
         verdict: 'Recommended',
@@ -186,10 +202,26 @@ export default function VideoInterview() {
                 }
                 <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Camera is optional for the interview</span>
               </div>
+              {cameraError && <div style={{ marginTop: 8, fontSize: 12, color: 'var(--danger)', padding: '8px 12px', background: '#fee2e2', borderRadius: 6 }}>{cameraError}</div>}
             </div>
-            {cameraOn && (
-              <video ref={videoRef} autoPlay muted style={{ width: '100%', borderRadius: 8, marginBottom: 16, maxHeight: 200, objectFit: 'cover', background: '#000' }} />
-            )}
+
+            {/* Always render video, show/hide via style */}
+            <video
+              ref={videoRef}
+              autoPlay
+              muted
+              playsInline
+              style={{
+                width: '100%',
+                borderRadius: 8,
+                marginBottom: 16,
+                maxHeight: 200,
+                objectFit: 'cover',
+                background: '#000',
+                display: cameraOn ? 'block' : 'none'
+              }}
+            />
+
             <div style={{ background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: 8, padding: 16, marginBottom: 16 }}>
               <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 8, color: 'var(--primary)' }}>📋 Interview Format</div>
               <div style={{ fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.8 }}>
@@ -233,7 +265,6 @@ export default function VideoInterview() {
         </div>
       </div>
 
-      {/* Progress */}
       <div style={{ marginBottom: 24 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'var(--text-muted)', marginBottom: 8 }}>
           <span>Progress</span><span>{currentQ}/{INTERVIEW_QUESTIONS.length} completed</span>
@@ -250,7 +281,6 @@ export default function VideoInterview() {
 
       <div className="grid-2" style={{ alignItems: 'start' }}>
         <div>
-          {/* Question card */}
           <div className="card" style={{ marginBottom: 16, border: '2px solid var(--primary)', background: '#f0f9ff' }}>
             <div className="card-body">
               <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
@@ -265,14 +295,17 @@ export default function VideoInterview() {
             </div>
           </div>
 
-          {/* Camera */}
-          {cameraOn && (
-            <div className="card" style={{ marginBottom: 16 }}>
-              <video ref={videoRef} autoPlay muted style={{ width: '100%', borderRadius: 8, maxHeight: 200, objectFit: 'cover', background: '#000' }} />
-            </div>
-          )}
+          {/* Always render video, show/hide based on cameraOn */}
+          <div className="card" style={{ marginBottom: 16, display: cameraOn ? 'block' : 'none' }}>
+            <video
+              ref={videoRef}
+              autoPlay
+              muted
+              playsInline
+              style={{ width: '100%', borderRadius: 8, maxHeight: 200, objectFit: 'cover', background: '#000' }}
+            />
+          </div>
 
-          {/* Previous answers */}
           {answers.length > 0 && (
             <div className="card">
               <div className="card-header"><span className="card-title">Completed ({answers.length})</span></div>
@@ -297,7 +330,6 @@ export default function VideoInterview() {
             </div>
           </div>
           <div className="card-body">
-            {/* Voice controls */}
             <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
               {!isListening
                 ? <button className="btn btn-primary" onClick={startListening} style={{ flex: 1 }}><Mic size={16} />Start Speaking</button>
@@ -305,7 +337,6 @@ export default function VideoInterview() {
               }
             </div>
 
-            {/* Live transcript */}
             {isListening && transcript && (
               <div style={{ padding: 12, background: '#fef3c7', borderRadius: 8, marginBottom: 12, fontSize: 13, border: '1px solid #fde68a' }}>
                 <div style={{ fontSize: 11, fontWeight: 600, color: '#92400e', marginBottom: 4 }}>🎤 Live transcript:</div>
@@ -313,7 +344,6 @@ export default function VideoInterview() {
               </div>
             )}
 
-            {/* Text answer */}
             <div className="form-group">
               <label className="form-label">Type or edit your answer:</label>
               <textarea
@@ -373,7 +403,6 @@ export default function VideoInterview() {
         </div>
       ) : results && (
         <>
-          {/* Overall score */}
           <div className="card" style={{ marginBottom: 24, background: results.overallScore >= 70 ? 'linear-gradient(135deg, #065f46, #10b981)' : 'linear-gradient(135deg, #92400e, #f59e0b)', border: 'none' }}>
             <div className="card-body" style={{ color: 'white', textAlign: 'center', padding: 32 }}>
               <div style={{ fontSize: 64, fontWeight: 900, lineHeight: 1 }}>{results.overallScore}</div>
@@ -383,7 +412,6 @@ export default function VideoInterview() {
             </div>
           </div>
 
-          {/* Score breakdown */}
           <div className="stat-grid" style={{ marginBottom: 24 }}>
             {[
               { label: 'Communication', score: results.communicationScore, color: '#3b82f6' },
@@ -425,7 +453,6 @@ export default function VideoInterview() {
             </div>
           </div>
 
-          {/* Per question analysis */}
           <div className="card">
             <div className="card-header"><span className="card-title">Question-by-Question Analysis</span></div>
             <div style={{ padding: '8px 0' }}>

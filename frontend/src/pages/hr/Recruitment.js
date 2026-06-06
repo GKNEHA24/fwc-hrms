@@ -61,7 +61,7 @@ export default function Recruitment() {
         {jobs.length === 0 ? (
           <div className="card" style={{ gridColumn: '1/-1' }}><div className="empty-state"><Briefcase size={40} /><h3>No jobs posted yet</h3><p>Create your first job posting</p></div></div>
         ) : jobs.map(job => (
-          <div className="card" key={job._id}>
+          <div className="card" key={job._id} style={{ cursor: 'pointer' }} onClick={() => viewApplications(job)}>
             <div className="card-body">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
                 <div>
@@ -83,8 +83,8 @@ export default function Recruitment() {
                   {job.salary && <span> · {job.salary}</span>}
                 </div>
                 <div style={{ display: 'flex', gap: 8 }}>
-                  <button className="btn btn-secondary btn-sm" onClick={() => viewApplications(job)}><Eye size={13} />Applications</button>
-                  <button className="btn btn-danger btn-sm" onClick={() => deleteJob(job._id)}>Delete</button>
+                  <button className="btn btn-secondary btn-sm" onClick={(e) => { e.stopPropagation(); viewApplications(job); }}><Eye size={13} />Applications</button>
+                  <button className="btn btn-danger btn-sm" onClick={(e) => { e.stopPropagation(); deleteJob(job._id); }}>Delete</button>
                 </div>
               </div>
             </div>
