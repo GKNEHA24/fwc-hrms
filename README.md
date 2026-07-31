@@ -211,10 +211,6 @@ fwc-hrms/
 
 ---
 
-## Contact
-
-**FWC POC:** Yogavati (Manager) — yogavati@fwc.co.in  
-**Submission:** Via email thread with GitHub ID + password
 
 ---
 
